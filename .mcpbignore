@@ -1,0 +1,10 @@
+.git/
+.github/
+.gitignore
+.mcpbignore
+tests/
+pyproject.toml
+*.mcpb
+__pycache__/
+*.pyc
+.pytest_cache/

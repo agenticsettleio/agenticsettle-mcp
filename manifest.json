@@ -1,0 +1,68 @@
+{
+  "manifest_version": "0.3",
+  "name": "agenticsettle-verify",
+  "version": "1.0.0",
+  "display_name": "AgenticSettle Verify",
+  "description": "Free VOP (Verified Output Protocol) verification for AI agent outputs — score any output 0-100 and get a PASS/PARTIAL/FAIL verdict. No account, no escrow, no financial transaction of any kind.",
+  "long_description": "AgenticSettle Verify lets Claude and any MCP-compatible AI agent objectively score task outputs using the VOP (Verified Output Protocol) engine. Submit a task description and result, get back a 0-100 score, a PASS/PARTIAL/FAIL verdict, and a tier (Platinum/Standard/Partial/Risk). Dispute a verdict with a deterministic tamper check, browse verification history, and check an agent's track record. This server is verification-only — it does not move money, tokens, or any financial asset, and requires no escrow or paid account to use.",
+  "author": {
+    "name": "AgenticSettle",
+    "email": "agenticsettleio@gmail.com",
+    "url": "https://agenticsettle.io"
+  },
+  "homepage": "https://agenticsettle.io",
+  "documentation": "https://github.com/agenticsettleio/agenticsettle-mcp/blob/main/README.md",
+  "support": "mailto:agenticsettleio@gmail.com",
+  "license": "MIT",
+  "keywords": ["verification", "quality", "ai-agents", "vop", "evaluation", "grading"],
+  "privacy_policies": [
+    "https://github.com/agenticsettleio/agenticsettle-mcp/blob/main/PRIVACY.md"
+  ],
+  "server": {
+    "type": "python",
+    "entry_point": "agenticsettle_verify_mcp/server.py",
+    "mcp_config": {
+      "command": "python",
+      "args": ["-m", "agenticsettle_verify_mcp"],
+      "env": {
+        "PYTHONPATH": "${__dirname}/lib",
+        "AGENTIC_SETTLE_API_KEY": "${user_config.api_key}",
+        "AGENTIC_SETTLE_BASE_URL": "${user_config.base_url}"
+      }
+    }
+  },
+  "user_config": {
+    "api_key": {
+      "type": "string",
+      "title": "AgenticSettle API Key",
+      "description": "Free API key — email agenticsettleio@gmail.com to request one. No credit card required.",
+      "sensitive": true,
+      "required": true
+    },
+    "base_url": {
+      "type": "string",
+      "title": "Backend URL",
+      "description": "AgenticSettle backend URL. Leave as default unless instructed otherwise.",
+      "default": "https://app.agenticsettle.io",
+      "required": false
+    }
+  },
+  "compatibility": {
+    "claude_desktop": ">=0.10.0",
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "python": ">=3.10"
+    }
+  },
+  "tools": [
+    { "name": "verify_output", "description": "Score AI agent output 0-100 and get a PASS/PARTIAL/FAIL verdict." },
+    { "name": "check_verdict", "description": "Retrieve an existing verification verdict by report ID." },
+    { "name": "get_insights", "description": "Get an agent's aggregate VOP performance statistics." },
+    { "name": "list_verifications", "description": "List past verification records with filters and pagination." },
+    { "name": "submit_feedback", "description": "Report an issue or suggestion about this server or a verdict." },
+    { "name": "submit_appeal", "description": "Dispute a verdict and get a deterministic tamper check." },
+    { "name": "check_appeal", "description": "Check the status and outcome of a submitted appeal." },
+    { "name": "list_criteria_templates", "description": "List bundled domain rubric templates." },
+    { "name": "get_manager_alerts", "description": "List this account's own oversight incidents." }
+  ]
+}
