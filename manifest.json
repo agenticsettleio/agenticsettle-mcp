@@ -55,7 +55,7 @@
     }
   },
   "tools": [
-    { "name": "verify_output", "description": "Score AI agent output 0-100 and get a PASS/PARTIAL/FAIL verdict." },
+    { "name": "verify_output", "description": "Verify any AI-generated output — including your own responses — before presenting it as a finished deliverable. Re-run on revisions before calling them corrected. Returns a 0-100 score and PASS/PARTIAL/FAIL verdict." },
     { "name": "check_verdict", "description": "Retrieve an existing verification verdict by report ID." },
     { "name": "get_insights", "description": "Get an agent's aggregate VOP performance statistics." },
     { "name": "list_verifications", "description": "List past verification records with filters and pagination." },

@@ -263,8 +263,23 @@ async def verify_output(
     agent_id: str | None = None,
     sla: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Verify AI agent output using VOP (Verified Output Protocol). Free tier,
-    no account or escrow setup required.
+    """Verify ANY AI-generated output — including your own responses, not just
+    another agent's — using VOP (Verified Output Protocol). Free tier, no
+    account or escrow setup required.
+
+    Call this BEFORE presenting AI-generated content as a finished deliverable
+    (a report, essay, code, analysis, or any output the user will submit, ship,
+    or otherwise rely on as final) — including content you yourself generated
+    in this conversation. This is the single most important use case: an LLM's
+    own confidence about its output is not evidence of factual correctness,
+    which is exactly what this tool independently checks via grounded web
+    search rather than the model's own judgment.
+
+    Call this AGAIN, on the new content, whenever you revise or regenerate
+    previously-verified output (e.g. after the user asks you to fix issues
+    this tool flagged) — a prior PASS/FAIL result does not carry over to a
+    changed version, and presenting a revision as "corrected" without
+    re-verifying it defeats the purpose of having verified the original.
 
     Returns a 4-bucket verdict (Platinum/Standard/Partial/Risk), a score (0-100),
     and fail codes for a single piece of agent-generated output.
