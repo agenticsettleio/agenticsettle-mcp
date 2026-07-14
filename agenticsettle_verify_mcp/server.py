@@ -281,6 +281,16 @@ async def verify_output(
     changed version, and presenting a revision as "corrected" without
     re-verifying it defeats the purpose of having verified the original.
 
+    Call discipline: call this exactly ONCE per unchanged piece of content
+    per user request. Do not call it again on the same content hoping for
+    a different or better score -- the grounded critic uses live web
+    search, so minor score variance between runs is expected and is not a
+    reason to retry. Report a PARTIAL/FAIL result to the user and explain
+    what to fix; only re-verify once the user has actually requested and
+    you have produced a revised version. The one exception is a genuine
+    call failure (timeout, error) -- retry once on actual failure, then
+    stop and report the failure rather than retrying indefinitely.
+
     Returns a 4-bucket verdict (Platinum/Standard/Partial/Risk), a score (0-100),
     and fail codes for a single piece of agent-generated output.
 
