@@ -269,3 +269,73 @@ async def test_backend_error_returns_dict_not_raise(mock_client):
     result = await verify_output(task_description="x", result_content="y")
     assert result["status_code"] == 404
     assert "error" in result
+
+
+# ─── retry / backoff (2026-07-14 — no prior coverage existed) ───────────────
+#
+# Never triggered against real production: exhausting the live 50/day free
+# quota or waiting for a genuine 502 just to exercise this path would be
+# reckless. Mocked and deterministic instead — asyncio.sleep is patched so
+# the tests don't actually wait out the 5s/15s backoff.
+
+@pytest.mark.asyncio
+async def test_verify_output_retries_502_then_succeeds(mock_client, monkeypatch):
+    sleeps: list[float] = []
+    monkeypatch.setattr(_srv.asyncio, "sleep", AsyncMock(side_effect=lambda s: sleeps.append(s)))
+    mock_client.post.side_effect = [
+        _mock_error_response(502, "bad gateway"),
+        _mock_error_response(502, "bad gateway"),
+        _mock_response({"report_id": "VER-1", "verdict": "PASS"}),
+    ]
+    result = await verify_output(task_description="x", result_content="y")
+    assert result["verdict"] == "PASS"
+    assert mock_client.post.call_count == 3
+    assert sleeps == [5.0, 15.0]  # matches AGENTIC_SETTLE_RETRY_BACKOFF default
+
+
+@pytest.mark.asyncio
+async def test_verify_output_429_retries_same_as_5xx(mock_client, monkeypatch):
+    monkeypatch.setattr(_srv.asyncio, "sleep", AsyncMock())
+    mock_client.post.side_effect = [
+        _mock_error_response(429, "rate limited"),
+        _mock_response({"report_id": "VER-1", "verdict": "PASS"}),
+    ]
+    result = await verify_output(task_description="x", result_content="y")
+    assert result["verdict"] == "PASS"
+    assert mock_client.post.call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_verify_output_persistent_5xx_returns_error_dict_not_raise(mock_client, monkeypatch):
+    """All _RETRY_MAX attempts get a real HTTP response (just a bad one) —
+    exhausting retries here returns the structured error dict, same as any
+    other 4xx/5xx. RuntimeError is reserved for total connection failure
+    (see next test)."""
+    monkeypatch.setattr(_srv.asyncio, "sleep", AsyncMock())
+    mock_client.post.side_effect = [_mock_error_response(503, "down")] * 3
+    result = await verify_output(task_description="x", result_content="y")
+    assert result["status_code"] == 503
+    assert "error" in result
+    assert mock_client.post.call_count == 3
+
+
+@pytest.mark.asyncio
+async def test_verify_output_connection_failure_raises_after_exhausting_retries(mock_client, monkeypatch):
+    monkeypatch.setattr(_srv.asyncio, "sleep", AsyncMock())
+    mock_client.post.side_effect = httpx.ConnectError("connection refused")
+    with pytest.raises(RuntimeError, match="unreachable after 3 attempts"):
+        await verify_output(task_description="x", result_content="y")
+    assert mock_client.post.call_count == 3
+
+
+@pytest.mark.asyncio
+async def test_get_insights_retries_502_then_succeeds(mock_client, monkeypatch):
+    """Same retry path via _get (GET requests), not just _post."""
+    monkeypatch.setattr(_srv.asyncio, "sleep", AsyncMock())
+    mock_client.get.side_effect = [
+        _mock_error_response(502, "bad gateway"),
+        _mock_response({"agent_id": "a1", "total_jobs": 5}),
+    ]
+    result = await get_insights(agent_id="a1")
+    assert result["agent_id"] == "a1"
+    assert mock_client.get.call_count == 2
