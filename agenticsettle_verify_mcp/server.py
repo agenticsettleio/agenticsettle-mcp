@@ -19,11 +19,15 @@ escrow-gated settlement.
 환경변수:
   AGENTIC_SETTLE_BASE_URL      백엔드 URL (default: https://app.agenticsettle.io)
   AGENTIC_SETTLE_API_KEY       x-api-key (필수)
-  AGENTIC_SETTLE_TIMEOUT       HTTP 요청당 타임아웃(초, default: 30.0)
+  AGENTIC_SETTLE_TIMEOUT       HTTP 요청당 타임아웃(초, default: 90.0 — 2026-07-14,
+                               백엔드가 VOP_M1_STRATEGY=grounded로 전환되며 검증
+                               1건이 웹검색 포함 최대 ~53s까지 걸릴 수 있어 기존
+                               30.0 기본값으로는 매 호출이 타임아웃되던 것을 확인,
+                               여유를 두고 상향)
   AGENTIC_SETTLE_RETRY_MAX     429/502/503/504 재시도 최대 횟수(default: 3)
   AGENTIC_SETTLE_RETRY_BACKOFF 재시도 간 대기(초, 콤마 구분, default: "5.0,15.0")
-                               — 기본값 기준 최악의 경우 ~110초/호출
-                               (3×30s + 5s+15s); 대화형 세션에서 더 빠른
+                               — 기본값 기준 최악의 경우 ~290초/호출
+                               (3×90s + 5s+15s); 대화형 세션에서 더 빠른
                                응답이 필요하면 예: RETRY_MAX=1 로 낮추기
   AGENTIC_SETTLE_FEEDBACK_URL  submit_feedback 1차 전송 대상 웹훅(Slack/Notion 등,
                                선택). 미설정 시 백엔드 /v2/user-feedback로 직행
@@ -71,7 +75,7 @@ load_dotenv()
 
 _BASE_URL = os.getenv("AGENTIC_SETTLE_BASE_URL", "https://app.agenticsettle.io").rstrip("/")
 _API_KEY: str = os.getenv("AGENTIC_SETTLE_API_KEY") or ""
-_TIMEOUT = float(os.getenv("AGENTIC_SETTLE_TIMEOUT", "30.0"))
+_TIMEOUT = float(os.getenv("AGENTIC_SETTLE_TIMEOUT", "90.0"))
 _SDK_VER = "verify-mcp-1.0.0"
 _MAX_CONTENT_LEN = 200_000  # characters — prevents oversized payloads
 
