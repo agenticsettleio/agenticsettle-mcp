@@ -37,14 +37,33 @@ Claude Code 연동:
 
 from __future__ import annotations
 
-import asyncio
 import os
-from typing import Any
+import site
 
-import httpx
-from dotenv import load_dotenv
-from mcp.server.fastmcp import FastMCP
-from mcp.types import ToolAnnotations
+# ─── .mcpb vendored-lib bootstrap ────────────────────────────────────────────
+# manifest.json sets PYTHONPATH=${__dirname}/lib for the packaged .mcpb
+# install, which only appends that directory to sys.path *raw* — it does NOT
+# process any .pth files inside it (that only happens for directories site.py
+# scans at interpreter startup, e.g. real site-packages). On Windows, `mcp`
+# unconditionally imports pywintypes/win32api/win32con/win32job, which
+# pywin32 exposes via a `.pth` file that redirects into lib/win32/lib/ —
+# without this, the packaged server fails to import at all on any machine
+# that doesn't happen to have a separate global pywin32 install (2026-07-14,
+# caught by testing the packaged layout in true isolation with `python -S`,
+# not by anything short of that — a plain PYTHONPATH-based smoke test on a
+# dev machine with pywin32 already installed globally silently "passes" by
+# using that global copy instead of the vendored one).
+_LIB_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "lib")
+if os.path.isdir(_LIB_DIR):
+    site.addsitedir(_LIB_DIR)
+
+import asyncio  # noqa: E402
+from typing import Any  # noqa: E402
+
+import httpx  # noqa: E402
+from dotenv import load_dotenv  # noqa: E402
+from mcp.server.fastmcp import FastMCP  # noqa: E402
+from mcp.types import ToolAnnotations  # noqa: E402
 
 load_dotenv()
 

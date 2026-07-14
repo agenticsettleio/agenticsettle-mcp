@@ -8,3 +8,18 @@ pyproject.toml
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# pywin32 (a hard Windows dependency of `mcp` itself, vendored into lib/ by
+# the release workflow) ships COM automation / ODBC / IIS-extension modules
+# this stdio-only server never touches. Confirmed safe to exclude by reading
+# mcp/os/win32/utilities.py's actual imports (only pywintypes/win32api/
+# win32con/win32job) and re-verifying full server import in true isolation
+# (`python -S`) after removing these — cuts the packaged bundle from ~43MB
+# to ~31MB. Do NOT add lib/win32/ or lib/pywin32_system32/ here — those
+# contain the modules actually imported and removing them breaks the server
+# on Windows entirely (2026-07-14).
+lib/win32com/
+lib/win32comext/
+lib/isapi/
+lib/adodbapi/
+lib/pythonwin/
