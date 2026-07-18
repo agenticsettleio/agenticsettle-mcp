@@ -3,6 +3,7 @@
   "name": "agenticsettle-verify",
   "version": "1.0.0",
   "display_name": "AgenticSettle Verify",
+  "icon": "assets/icon.png",
   "description": "Free VOP (Verified Output Protocol) verification for AI agent outputs — score any output 0-100 and get a PASS/PARTIAL/FAIL verdict. No account, no escrow, no financial transaction of any kind.",
   "long_description": "AgenticSettle Verify lets Claude and any MCP-compatible AI agent objectively score task outputs using the VOP (Verified Output Protocol) engine. Submit a task description and result, get back a 0-100 score, a PASS/PARTIAL/FAIL verdict, and a tier (Platinum/Standard/Partial/Risk). Dispute a verdict with a deterministic tamper check, browse verification history, and check an agent's track record. This server is verification-only — it does not move money, tokens, or any financial asset, and requires no escrow or paid account to use.",
   "author": {

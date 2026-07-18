@@ -113,16 +113,15 @@ mcp = FastMCP(
         "VOP (Verified Output Protocol) verification for AI agent workflows — "
         "free tier only, no account setup or escrow required. "
         "Use verify_output to score any agent output 0-100 and get a "
-        "PASS/PARTIAL/FAIL verdict. If the user just pastes or shares "
-        "content (including a file attachment) and asks you to check/verify/"
-        "review it without stating an explicit task or requirements, do NOT "
-        "ask them to supply a task_description — infer a reasonable one "
-        "yourself from what the content appears to be (e.g. 'Write a clear, "
-        "complete, well-structured piece of content on the given subject') "
-        "and call verify_output immediately with the content as "
-        "result_content. Only ask the user for a task_description if they "
-        "clearly intended to specify requirements but didn't paste any "
-        "content yet. Use check_verdict to retrieve a prior "
+        "PASS/PARTIAL/FAIL verdict. When content is pasted or shared "
+        "(including a file attachment) for checking/verifying/reviewing "
+        "without an explicit task or requirements stated, a reasonable "
+        "task_description can be inferred from what the content appears to "
+        "be (e.g. 'Write a clear, complete, well-structured piece of "
+        "content on the given subject') rather than asking the user to "
+        "supply one — asking is more appropriate when the user's phrasing "
+        "suggests they intended to specify requirements but had not yet "
+        "pasted the content. Use check_verdict to retrieve a prior "
         "result by report_id, list_verifications to browse past results, "
         "and get_insights for an agent's aggregate track record. "
         "submit_appeal/check_appeal dispute a verdict with a deterministic "
@@ -263,33 +262,29 @@ async def verify_output(
     agent_id: str | None = None,
     sla: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Verify ANY AI-generated output — including your own responses, not just
-    another agent's — using VOP (Verified Output Protocol). Free tier, no
-    account or escrow setup required.
+    """Verify AI-generated output — including the calling model's own prior
+    responses, not just another agent's — using VOP (Verified Output Protocol).
+    Free tier, no account or escrow setup required.
 
-    Call this BEFORE presenting AI-generated content as a finished deliverable
-    (a report, essay, code, analysis, or any output the user will submit, ship,
-    or otherwise rely on as final) — including content you yourself generated
-    in this conversation. This is the single most important use case: an LLM's
-    own confidence about its output is not evidence of factual correctness,
-    which is exactly what this tool independently checks via grounded web
-    search rather than the model's own judgment.
+    Primary use case: verifying AI-generated content (a report, essay, code,
+    analysis, or any output a user will submit, ship, or otherwise rely on as
+    final) before it is presented as finished, including content generated
+    earlier in the same conversation. An LLM's own stated confidence in its
+    output is not evidence of factual correctness; this tool checks factual
+    correctness independently via grounded web search rather than the
+    model's self-assessment.
 
-    Call this AGAIN, on the new content, whenever you revise or regenerate
-    previously-verified output (e.g. after the user asks you to fix issues
-    this tool flagged) — a prior PASS/FAIL result does not carry over to a
-    changed version, and presenting a revision as "corrected" without
-    re-verifying it defeats the purpose of having verified the original.
+    A verdict describes the exact content submitted, not any later revision
+    of it. If the content is subsequently changed, the earlier PASS/FAIL
+    result no longer describes what now exists — verifying a revision
+    requires submitting the revised content as its own call.
 
-    Call discipline: call this exactly ONCE per unchanged piece of content
-    per user request. Do not call it again on the same content hoping for
-    a different or better score -- the grounded critic uses live web
-    search, so minor score variance between runs is expected and is not a
-    reason to retry. Report a PARTIAL/FAIL result to the user and explain
-    what to fix; only re-verify once the user has actually requested and
-    you have produced a revised version. The one exception is a genuine
-    call failure (timeout, error) -- retry once on actual failure, then
-    stop and report the failure rather than retrying indefinitely.
+    Score variance: because the grounded critic uses live web search,
+    re-running this tool on identical, unchanged content can produce a
+    slightly different score between runs. This reflects live-search noise
+    rather than a defect that repeated calls would resolve — the score does
+    not converge toward a "truer" value with more calls on unchanged input,
+    and each call counts against the daily quota.
 
     Returns a 4-bucket verdict (Platinum/Standard/Partial/Risk), a score (0-100),
     and fail codes for a single piece of agent-generated output.
