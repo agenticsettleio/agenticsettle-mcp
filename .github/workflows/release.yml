@@ -10,9 +10,13 @@ on:
     tags: ["v*.*.*"]
   workflow_dispatch: {}
 
+permissions:
+  contents: write  # softprops/action-gh-release needs write access to create the release and upload assets
+
 jobs:
   build:
     strategy:
+      fail-fast: false  # a release step failing on one OS shouldn't cancel the other two builds mid-flight
       matrix:
         include:
           - os: macos-latest
