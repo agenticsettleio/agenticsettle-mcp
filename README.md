@@ -109,7 +109,7 @@ export AGENTIC_SETTLE_API_KEY="your-api-key-here"               # required
 |----------|---------|---------|
 | `AGENTIC_SETTLE_BASE_URL` | `https://app.agenticsettle.io` | Backend URL |
 | `AGENTIC_SETTLE_API_KEY` | *(required)* | `x-api-key` sent with every request |
-| `AGENTIC_SETTLE_TIMEOUT` | `30.0` | Per-HTTP-request timeout in seconds |
+| `AGENTIC_SETTLE_TIMEOUT` | `90.0` | Per-HTTP-request timeout in seconds (raised from 30.0 — grounded verification can take up to ~53s) |
 | `AGENTIC_SETTLE_RETRY_MAX` | `3` | Max attempts on 429/502/503/504 or network errors |
 | `AGENTIC_SETTLE_RETRY_BACKOFF` | `5.0,15.0` | Comma-separated backoff seconds between retries |
 | `AGENTIC_SETTLE_FEEDBACK_URL` | *(unset)* | If set, `submit_feedback` posts here first (e.g. a Slack/Notion webhook) before falling back to the backend |
