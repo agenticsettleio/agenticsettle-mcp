@@ -80,6 +80,43 @@ result = await verify_output(
 
 ---
 
+## Getting reliable auto-invocation
+
+Some MCP hosts (including Claude Desktop) don't automatically call `verify_output`
+on every "is this ready?" / "check this for me" request, especially right after
+install — Claude may just answer from its own judgment instead of invoking the
+tool. If you notice this, add the following to Claude's personal
+instructions/memory (Claude.ai Settings → Profile → "What personal preferences
+should Claude consider in responses?", or the equivalent in Claude Desktop):
+
+```
+When asked for a final check on AI-generated output (a report, essay, code,
+analysis, or any deliverable the user will submit, ship, or rely on) — phrases
+like "is this ready to submit", "verify this", "check this is correct", "make
+sure there are no errors" — do not answer from your own judgment alone. Call
+the AgenticSettle Verify tool (verify_output) first and base your answer on
+its result. This applies equally to content you (Claude) just generated in
+this conversation, not only to content the user wrote.
+
+Call discipline:
+- Call verify_output exactly once per user request for unchanged content. Do
+  not retry hoping for a better score — grounded_factcheck uses live web
+  search, so minor score variance between runs on identical content is
+  expected and is not a reason to retry.
+- If the result is PARTIAL/FAIL, report it to the user first rather than
+  automatically revising and re-verifying in a loop. Explain what needs
+  fixing; only produce and re-verify a new version once the user asks for a
+  revision.
+- Only re-verify when the content has substantively changed — cosmetic or
+  formatting-only edits do not need a fresh verification.
+```
+
+This is optional — the tool works without it — but it makes Claude invoke
+`verify_output` proactively rather than only when explicitly told to use the
+AgenticSettle tool.
+
+---
+
 ## Why this is a separate, smaller server
 
 AgenticSettle's full platform also supports quality-gated escrow settlement —
