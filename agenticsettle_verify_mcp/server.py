@@ -17,14 +17,26 @@ available via the main AgenticSettle API/SDK for customers who need
 escrow-gated settlement.
 
 환경변수:
-  AGENTIC_SETTLE_BASE_URL      백엔드 URL (default: https://app.agenticsettle.io)
+  AGENTIC_SETTLE_BASE_URL      백엔드 URL (default: https://app.agenticsettle.io).
+                               https:// 스킴만 허용 — 그 외 스킴은 시작 시점에
+                               거부되며, 예외적으로 필요한 경우에만
+                               AGENTIC_SETTLE_ALLOW_INSECURE_URL을 함께 설정.
+  AGENTIC_SETTLE_ALLOW_INSECURE_URL "1"로 설정하면 AGENTIC_SETTLE_BASE_URL이
+                               https:// 이외의 스킴(예: 로컬 개발용 http)을
+                               사용할 수 있음. 기본은 미설정(거부) — 소셜
+                               엔지니어링이나 프롬프트 인젝션으로 이 환경변수가
+                               공격자 서버를 가리키도록 조작당해도 API 키가
+                               평문으로 그 서버에 전송되지 않도록 막는다.
   AGENTIC_SETTLE_API_KEY       x-api-key (필수)
   AGENTIC_SETTLE_TIMEOUT       HTTP 요청당 타임아웃(초, default: 90.0 — 2026-07-14,
                                백엔드가 VOP_M1_STRATEGY=grounded로 전환되며 검증
                                1건이 웹검색 포함 최대 ~53s까지 걸릴 수 있어 기존
                                30.0 기본값으로는 매 호출이 타임아웃되던 것을 확인,
                                여유를 두고 상향)
-  AGENTIC_SETTLE_RETRY_MAX     429/502/503/504 재시도 최대 횟수(default: 3)
+  AGENTIC_SETTLE_RETRY_MAX     502/503/504 재시도 최대 횟수(default: 3) — 429는
+                               재시도 대상에서 제외(호출 빈도 문제이지 일시적
+                               백엔드 장애가 아니므로, 재시도하면 오히려 상황이
+                               악화됨 — agenticsettle_mcp 패키지와 동일 정책)
   AGENTIC_SETTLE_RETRY_BACKOFF 재시도 간 대기(초, 콤마 구분, default: "5.0,15.0")
                                — 기본값 기준 최악의 경우 ~290초/호출
                                (3×90s + 5s+15s); 대화형 세션에서 더 빠른
@@ -62,6 +74,7 @@ if os.path.isdir(_LIB_DIR):
     site.addsitedir(_LIB_DIR)
 
 import asyncio  # noqa: E402
+import urllib.parse  # noqa: E402
 from typing import Any  # noqa: E402
 
 import httpx  # noqa: E402
@@ -74,6 +87,39 @@ load_dotenv()
 # ─── 설정 ────────────────────────────────────────────────────────────────────
 
 _BASE_URL = os.getenv("AGENTIC_SETTLE_BASE_URL", "https://app.agenticsettle.io").rstrip("/")
+_ALLOW_INSECURE_URL = os.getenv("AGENTIC_SETTLE_ALLOW_INSECURE_URL", "") in ("1", "true", "True", "yes")
+
+
+_LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1", "0.0.0.0"}
+
+
+def _validate_base_url(url: str, *, allow_insecure: bool) -> None:
+    """AGENTIC_SETTLE_BASE_URL이 https://가 아니면 AGENTIC_SETTLE_ALLOW_INSECURE_URL을
+    명시적으로 설정하지 않는 한 시작을 거부한다. 단, 호스트가 loopback
+    (localhost/127.0.0.1/::1/0.0.0.0)이면 예외 — 로컬 개발 서버는 이 검증이
+    막으려는 "공격자가 통제하는 원격 호스트"가 될 수 없다(2026-07-26, 부모
+    저장소 agentic-settle-core의 동일 수정과 동기화 — 그쪽에서 로컬 테스트
+    스위트가 http://test-backend:8000 기본값으로 collection 단계에서 깨지는
+    회귀가 실제로 발생해 잡음).
+
+    이 검증이 없으면, 사용자가 (소셜 엔지니어링이나 프롬프트 인젝션으로) 이
+    환경변수를 공격자가 통제하는 호스트로 바꾸도록 속아 넘어갈 경우, 실제 API
+    키가 이후 모든 도구 호출마다 그 호스트로 평문 전송된다 — 지금까지는
+    http://도 아무 검증 없이 조용히 허용되었다.
+    """
+    parsed = urllib.parse.urlsplit(url)
+    if parsed.scheme == "https" or allow_insecure or parsed.hostname in _LOCAL_HOSTS:
+        return
+    raise RuntimeError(
+        f"AGENTIC_SETTLE_BASE_URL must use https:// (got: {url!r}). "
+        "If you deliberately need a non-HTTPS backend (e.g. local dev), set "
+        "AGENTIC_SETTLE_ALLOW_INSECURE_URL=1 to override — do not do this for "
+        "a URL you did not configure yourself, since your API key would then "
+        "be sent to that host in plaintext."
+    )
+
+
+_validate_base_url(_BASE_URL, allow_insecure=_ALLOW_INSECURE_URL)
 _API_KEY: str = os.getenv("AGENTIC_SETTLE_API_KEY") or ""
 _TIMEOUT = float(os.getenv("AGENTIC_SETTLE_TIMEOUT", "90.0"))
 _SDK_VER = "verify-mcp-1.0.0"
@@ -90,8 +136,11 @@ _FEEDBACK_CATEGORIES = {
     "other",           # 기타
 }
 
-# 503/502/504 재시도 설정 — 백엔드 배포 중 잠깐 끊기는 구간을 투명하게 처리
-_RETRY_STATUSES = {429, 502, 503, 504}
+# 502/503/504 재시도 설정 — 백엔드 배포 중 잠깐 끊기는 구간을 투명하게 처리.
+# 429(rate limit)는 호출 빈도 문제이지 일시적 백엔드 장애가 아니므로 재시도
+# 대상에서 제외 — 재시도하면 오히려 rate limit 상황이 악화된다
+# (agenticsettle_mcp/server.py의 _RETRY_STATUSES와 동일 정책으로 정정, 2026-07-26).
+_RETRY_STATUSES = {502, 503, 504}
 _RETRY_MAX = int(os.getenv("AGENTIC_SETTLE_RETRY_MAX", "3"))
 _RETRY_BACKOFF = [
     float(x) for x in os.getenv("AGENTIC_SETTLE_RETRY_BACKOFF", "5.0,15.0").split(",") if x.strip()
@@ -184,6 +233,24 @@ def _local_error(message: str, status_code: int = 400) -> dict[str, Any]:
     return {"error": message, "status_code": status_code}
 
 
+def _safe_json(r: httpx.Response) -> dict[str, Any]:
+    """Parse a success response body as JSON without letting a malformed body
+    escape as an uncaught json.JSONDecodeError.
+
+    Only ``_error_response()`` (the 4xx/5xx path) guarded ``r.json()`` before —
+    the success path called it directly, so a non-JSON body (an
+    attacker-controlled host per the base-URL validation above, or a
+    transient backend serialization bug) would propagate an exception out of
+    an ``@mcp.tool()`` function, breaking the documented "tools never raise"
+    contract and potentially leaking a local stack trace to the calling
+    agent/user.
+    """
+    try:
+        return r.json()
+    except Exception:
+        return {"error": "invalid response from backend", "status_code": r.status_code}
+
+
 # Shared client — recreated when the event loop changes (pytest-asyncio per-function loops).
 _http: httpx.AsyncClient | None = None
 _http_loop: object | None = None
@@ -215,7 +282,7 @@ async def _post(path: str, body: dict[str, Any]) -> dict[str, Any]:
                 continue
             if r.status_code >= 400:
                 return _error_response(r)
-            return r.json()
+            return _safe_json(r)
         except httpx.RequestError as exc:
             last_exc = exc
             if attempt < _RETRY_MAX - 1:
@@ -235,7 +302,7 @@ async def _get(path: str, *, params: dict[str, Any] | None = None) -> dict[str, 
                 continue
             if r.status_code >= 400:
                 return _error_response(r)
-            return r.json()
+            return _safe_json(r)
         except httpx.RequestError as exc:
             last_exc = exc
             if attempt < _RETRY_MAX - 1:

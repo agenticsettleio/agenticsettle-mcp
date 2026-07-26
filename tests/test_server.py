@@ -15,7 +15,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
+# http:// is fine here — every httpx call in this file is intercepted by
+# unittest.mock.patch, nothing ever actually leaves the process, so the
+# https-only guard added to _validate_base_url() (2026-07-26 audit fix)
+# needs an explicit opt-in for this fake, non-resolvable test host.
 os.environ.setdefault("AGENTIC_SETTLE_BASE_URL", "http://test-backend:8000")
+os.environ.setdefault("AGENTIC_SETTLE_ALLOW_INSECURE_URL", "1")
 
 
 @pytest.fixture(autouse=True)
@@ -294,15 +299,20 @@ async def test_verify_output_retries_502_then_succeeds(mock_client, monkeypatch)
 
 
 @pytest.mark.asyncio
-async def test_verify_output_429_retries_same_as_5xx(mock_client, monkeypatch):
-    monkeypatch.setattr(_srv.asyncio, "sleep", AsyncMock())
-    mock_client.post.side_effect = [
-        _mock_error_response(429, "rate limited"),
-        _mock_response({"report_id": "VER-1", "verdict": "PASS"}),
-    ]
+async def test_verify_output_429_not_retried(mock_client, monkeypatch):
+    # 2026-07-26 audit fix (Q-28 drift port): 429 (rate limit) is a call-
+    # frequency problem, not a transient backend outage like 502/503/504 —
+    # retrying it just makes the rate-limit situation worse. This mirrors
+    # agenticsettle_mcp/server.py's _RETRY_STATUSES, which never included
+    # 429 to begin with; this build had drifted and retried it anyway.
+    sleep_mock = AsyncMock()
+    monkeypatch.setattr(_srv.asyncio, "sleep", sleep_mock)
+    mock_client.post.return_value = _mock_error_response(429, "rate limited")
     result = await verify_output(task_description="x", result_content="y")
-    assert result["verdict"] == "PASS"
-    assert mock_client.post.call_count == 2
+    assert result["status_code"] == 429
+    assert "error" in result
+    assert mock_client.post.call_count == 1
+    sleep_mock.assert_not_called()
 
 
 @pytest.mark.asyncio
