@@ -190,7 +190,8 @@ mcp = FastMCP(
         "all retries (raises RuntimeError — a connectivity failure, not a "
         "4xx/5xx response, so there is no status_code to return). "
         "Requires AGENTIC_SETTLE_API_KEY environment variable — "
-        "request a free key by emailing agenticsettleio@gmail.com"
+        "get a free key instantly via POST https://app.agenticsettle.io/v2/signup "
+        "with a JSON body of {\"email\": \"you@example.com\"}"
     ),
     website_url="https://agenticsettle.io",
 )
@@ -201,8 +202,8 @@ def _require_api_key() -> None:
     if not _API_KEY:
         raise ValueError(
             "AGENTIC_SETTLE_API_KEY not configured. "
-            "Request a free API key by emailing agenticsettleio@gmail.com, "
-            "then set the environment variable."
+            "Get a free key instantly: POST https://app.agenticsettle.io/v2/signup "
+            "with {\"email\": \"you@example.com\"}, then set the environment variable."
         )
 
 

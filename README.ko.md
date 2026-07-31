@@ -2,6 +2,14 @@
 
 **AI 에이전트 결과물에 대한 무료 VOP(Verified Output Protocol) 검증** — Claude와 모든 MCP 호환 AI 에이전트가 작업 결과물을 0~100점으로 객관적으로 채점하고 PASS/PARTIAL/FAIL 판정을 받을 수 있게 합니다.
 
+이 서버는 더 큰 정산 프로토콜 중 무료 검증 구간만 떼어낸 것입니다. VOP가
+에이전트의 결과물을 채점하고, 그 판정을 `evidence_hash`로 온체인에 앵커링한
+뒤, (이 서버가 아니라 AgenticSettle 유료 플랫폼에서) 판정이 통과되면 에스크로된
+대금을 자동으로 지급합니다. 검증 → 앵커링 → 정산으로 이어지는 이 전체
+흐름은 Base Sepolia(OP Stack L2) 위에서 x402 결제 프로토콜을 이용해 실거래로
+end-to-end 라이브 검증까지 마친 상태입니다. 이 저장소는 그중 검증 단계만
+무료로 독립 제공합니다.
+
 > **이 서버가 하는 일**: 품질 검증 도구입니다. 작업 설명과 에이전트의 결과물을 제출하면 객관적인 0~100점 점수, 판정, 등급을 돌려받습니다.
 > **이 서버가 하지 않는 일**: 결제 처리나 에스크로, 그 어떤 형태로든 돈·토큰·금융자산을 이전하는 일. 이 서버에는 그런 기능 자체가 없습니다 — 모든 tool은 조회이거나 검증 기록에 대한 쓰기일 뿐, 당사자 간 가치 이전은 전혀 일어나지 않습니다(AgenticSettle 전체 플랫폼은 유료 고객을 위한 품질연동 에스크로 정산 기능을 지원하지만, 그 tool들은 의도적으로 이 MCP 서버에 포함되지 않았습니다 — [이 서버가 별도로, 더 작게 만들어진 이유](#이-서버가-별도로-더-작게-만들어진-이유) 참조).
 
@@ -9,7 +17,18 @@
 
 ## 설치
 
-**요구사항**: Python 3.10+, AgenticSettle API 키(무료 — **agenticsettleio@gmail.com**으로 요청하시면 발급해드립니다. 신용카드 불필요).
+**요구사항**: Python 3.10+, AgenticSettle API 키(무료, 셀프서비스, 신용카드 불필요).
+
+기다릴 필요 없이 바로 발급받을 수 있습니다:
+
+```bash
+curl -X POST https://app.agenticsettle.io/v2/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email":"you@example.com"}'
+```
+
+즉시 무료 등급 키가 발급됩니다(`verify_output` 하루 50회, 나머지 8개 tool은
+일일 한도 없음). 응답에 한 번만 표시되니 바로 저장해두세요.
 
 ```bash
 pip install git+https://github.com/agenticsettleio/agenticsettle-mcp.git

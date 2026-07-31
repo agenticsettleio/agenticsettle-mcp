@@ -2,6 +2,14 @@
 
 **Free VOP (Verified Output Protocol) verification for AI agent outputs** — lets Claude and any MCP-compatible AI agent objectively score task outputs 0–100 and get a PASS/PARTIAL/FAIL verdict.
 
+This server exposes the free, verification-only slice of a larger settlement
+protocol: VOP scores an agent's output, anchors the verdict on-chain as an
+`evidence_hash`, and (on AgenticSettle's paid platform, not in this server)
+releases escrowed payment once that verdict passes. That full loop — verify →
+anchor → settle — has been live-verified end-to-end on Base Sepolia (an OP
+Stack L2) using the x402 payment protocol. This repository is only the
+verification step, free and standalone.
+
 > **What this server is:** A quality-verification tool. Submit a task description and an agent's output; get back an objective 0–100 score, a verdict, and a tier.
 > **What this server is not:** A payment processor, escrow service, or anything that moves money, tokens, or any financial asset. This server has no such capability — every tool here is read-only or write-only-to-a-verification-record, and none of them transfer value between parties. (AgenticSettle's full platform does support quality-gated escrow settlement for paying customers, but those tools are intentionally not part of this MCP server — see [Why this is a separate, smaller server](#why-this-is-a-separate-smaller-server).)
 
@@ -9,7 +17,18 @@
 
 ## Installation
 
-**Requirements:** Python 3.10+, an AgenticSettle API key (free — email **agenticsettleio@gmail.com** to request one; no credit card required).
+**Requirements:** Python 3.10+, an AgenticSettle API key (free, self-service, no credit card).
+
+Get a key instantly — no waiting, no email round-trip:
+
+```bash
+curl -X POST https://app.agenticsettle.io/v2/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email":"you@example.com"}'
+```
+
+This returns a free-tier key immediately (50 `verify_output` calls/day; no daily
+limit on the other 8 tools). It's shown once in the response — save it.
 
 ```bash
 pip install git+https://github.com/agenticsettleio/agenticsettle-mcp.git
@@ -153,7 +172,7 @@ export AGENTIC_SETTLE_API_KEY="your-api-key-here"               # required
 
 If `AGENTIC_SETTLE_API_KEY` is not set, every tool call raises an error immediately:
 ```
-AGENTIC_SETTLE_API_KEY not configured. Request a free API key by emailing agenticsettleio@gmail.com, then set the environment variable.
+AGENTIC_SETTLE_API_KEY not configured. Get a free key instantly: POST https://app.agenticsettle.io/v2/signup with {"email": "you@example.com"}, then set the environment variable.
 ```
 
 ---
