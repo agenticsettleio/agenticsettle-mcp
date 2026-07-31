@@ -40,6 +40,19 @@ agenticsettle-verify-mcp = "agenticsettle_verify_mcp.server:main"
 [tool.setuptools.packages.find]
 include = ["agenticsettle_verify_mcp*"]
 
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+
+[tool.ruff.lint]
+# Explicit, deterministic ruleset — without this, `ruff check .` falls back to
+# whatever a bare `pip install "ruff>=0.6.0"` resolves to that day, and CI has
+# gone red before purely from a ruff release changing its own defaults.
+select = ["E", "F", "W", "I", "UP"]
+ignore = [
+  "E501",  # line length is handled by formatter where it matters
+]
+
 [tool.pytest.ini_options]
 minversion = "7.0"
 testpaths = ["tests"]

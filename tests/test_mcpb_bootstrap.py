@@ -49,7 +49,7 @@ def test_pth_redirected_submodule_unreachable_via_raw_syspath(tmp_path):
     """
     result = subprocess.run(
         [sys.executable, "-S", "-c", textwrap.dedent(script)],
-        capture_output=True, text=True, timeout=15,
+        capture_output=True, text=True, timeout=15, check=False,
     )
     assert result.returncode != 0, "expected ModuleNotFoundError without addsitedir"
     assert "synth_marker" in result.stderr
@@ -70,7 +70,7 @@ def test_addsitedir_bootstrap_makes_the_pth_redirected_submodule_importable(tmp_
     """
     result = subprocess.run(
         [sys.executable, "-S", "-c", textwrap.dedent(script)],
-        capture_output=True, text=True, timeout=15,
+        capture_output=True, text=True, timeout=15, check=False,
     )
     assert result.returncode == 0, result.stderr
     assert "OK" in result.stdout
