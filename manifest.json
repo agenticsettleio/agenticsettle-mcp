@@ -36,7 +36,7 @@
     "api_key": {
       "type": "string",
       "title": "AgenticSettle API Key",
-      "description": "Free API key — email agenticsettleio@gmail.com to request one. No credit card required.",
+      "description": "Free, instant, self-service — no email, no credit card. Get one: curl -sX POST https://app.agenticsettle.io/v2/signup -H \"Content-Type: application/json\" -d '{\"email\":\"you@example.com\"}'",
       "sensitive": true,
       "required": true
     },

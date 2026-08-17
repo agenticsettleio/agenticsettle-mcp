@@ -1,0 +1,16 @@
+.git
+.github
+.gitignore
+.mcpbignore
+.pytest_cache
+.ruff_cache
+lib
+tests
+assets
+*.mcpb
+*.egg-info
+__pycache__
+*.pyc
+scripts
+manifest.json
+README.ko.md
