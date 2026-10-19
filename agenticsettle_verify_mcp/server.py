@@ -273,6 +273,19 @@ def _get_http() -> httpx.AsyncClient:
     return _http
 
 
+def _path_segment(value: object) -> str:
+    """도구 인자를 백엔드 경로의 한 조각으로 안전하게 만든다.
+
+    f"/v2/agents/{agent_id}/performance" 처럼 인자를 그대로 끼우면 ``../../v2/...`` 같은 값이 호출 키의 범위 안에서 다른 GET 경로를 만들고 ``?``·``#`` 로 쿼리를
+    주입한다. 프롬프트 인젝션을 받은 에이전트가 이 인자를 조종할 수 있다. ``/``·``?``·``#``·``%`` 등은 퍼센트 인코딩하고(백엔드가 한 번 디코딩해 원래 값으로 복원),
+    빈 값과 ``.``·``..`` 는 거절한다(ValueError — 호출한 도구가 오류 dict 로 바꾼다).
+    """
+    text = str(value)
+    if text in ("", ".", ".."):
+        raise ValueError("invalid identifier")
+    return urllib.parse.quote(text, safe="")
+
+
 async def _post(path: str, body: dict[str, Any]) -> dict[str, Any]:
     last_exc: Exception | None = None
     for attempt in range(_RETRY_MAX):
@@ -421,8 +434,12 @@ async def check_verdict(
     _require_api_key()
     if audience not in {"agent", "customer"}:
         return _local_error('audience must be "agent" or "customer"')
+    try:
+        rid = _path_segment(report_id)
+    except ValueError:
+        return _local_error("report_id is not a valid identifier")
     return await _get(
-        f"/v2/verifications/{report_id}",
+        f"/v2/verifications/{rid}",
         params={"audience": audience},
     )
 
@@ -447,7 +464,11 @@ async def get_insights(agent_id: str) -> dict[str, Any]:
         NOT a 0.0-1.0 fraction), avg_vop_score (float, 0-100).
     """
     _require_api_key()
-    return await _get(f"/v2/agents/{agent_id}/performance")
+    try:
+        aid = _path_segment(agent_id)
+    except ValueError:
+        return _local_error("agent_id is not a valid identifier")
+    return await _get(f"/v2/agents/{aid}/performance")
 
 
 # ─── 도구 4: list_verifications ──────────────────────────────────────────────
@@ -641,7 +662,11 @@ async def submit_appeal(
         "appellant": appellant,
         "reason": reason,
     }
-    return await _post(f"/v2/verifications/{verification_id}/appeal", body)
+    try:
+        vid = _path_segment(verification_id)
+    except ValueError:
+        return _local_error("verification_id is not a valid identifier")
+    return await _post(f"/v2/verifications/{vid}/appeal", body)
 
 
 # ─── 도구 7: check_appeal ─────────────────────────────────────────────────────
@@ -664,7 +689,11 @@ async def check_appeal(appeal_id: str) -> dict[str, Any]:
         resolution_score, resolution_note, created_at, resolved_at
     """
     _require_api_key()
-    return await _get(f"/v2/appeals/{appeal_id}")
+    try:
+        apid = _path_segment(appeal_id)
+    except ValueError:
+        return _local_error("appeal_id is not a valid identifier")
+    return await _get(f"/v2/appeals/{apid}")
 
 
 # ─── 도구 8: list_criteria_templates ──────────────────────────────────────────
