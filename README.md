@@ -6,8 +6,9 @@ This server exposes the free, verification-only slice of a larger settlement
 protocol: VOP scores an agent's output, anchors the verdict on-chain as an
 `evidence_hash`, and (on AgenticSettle's paid platform, not in this server)
 releases escrowed payment once that verdict passes. That full loop — verify →
-anchor → settle — has been live-verified end-to-end on Base Sepolia (an OP
-Stack L2) using the x402 payment protocol. This repository is only the
+anchor → settle — has been exercised end-to-end as a test on Base Sepolia (an OP
+Stack testnet, test tokens only, not production settlement) using the x402
+payment protocol. This repository is only the
 verification step, free and standalone.
 
 > **What this server is:** A quality-verification tool. Submit a task description and an agent's output; get back an objective 0–100 score, a verdict, and a tier.
@@ -27,8 +28,8 @@ curl -X POST https://app.agenticsettle.io/v2/signup \
   -d '{"email":"you@example.com"}'
 ```
 
-This returns a free-tier key immediately (50 `verify_output` calls/day; no daily
-limit on the other 8 tools). It's shown once in the response — save it.
+This returns a free-tier key immediately (up to 10 `verify_output` calls/day per key, and a shared daily cap
+across all free keys may apply first; no per-key daily limit on the other 8 tools). It's shown once in the response — save it.
 
 ```bash
 pip install git+https://github.com/agenticsettleio/agenticsettle-mcp.git
@@ -190,7 +191,7 @@ AGENTIC_SETTLE_API_KEY not configured. Get a free key instantly: POST https://ap
 | Tier | Endpoint | Limit |
 |------|----------|-------|
 | No API key (public) | none — all tools here require a key | — |
-| Free API key | `verify_output` | 50 verify calls/day per key |
+| Free API key | `verify_output` | Up to 10 verify calls/day per key (a shared daily cap across free keys may apply first) |
 | Free API key | all other tools | No daily quota — auth only |
 
 When the limit is exceeded the backend returns HTTP 429. This server retries automatically with backoff, so brief bursts are absorbed transparently.
