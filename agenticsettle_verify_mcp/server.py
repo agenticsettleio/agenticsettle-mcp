@@ -122,7 +122,7 @@ def _validate_base_url(url: str, *, allow_insecure: bool) -> None:
 _validate_base_url(_BASE_URL, allow_insecure=_ALLOW_INSECURE_URL)
 _API_KEY: str = os.getenv("AGENTIC_SETTLE_API_KEY") or ""
 _TIMEOUT = float(os.getenv("AGENTIC_SETTLE_TIMEOUT", "90.0"))
-_SDK_VER = "verify-mcp-1.0.0"
+_SDK_VER = "verify-mcp-1.0.1"
 _MAX_CONTENT_LEN = 200_000  # characters — prevents oversized payloads
 
 # 피드백 전송 대상: 백엔드 /v2/user-feedback 또는 Slack/Notion 웹훅 URL

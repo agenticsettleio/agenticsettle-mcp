@@ -1,7 +1,7 @@
 {
   "manifest_version": "0.3",
   "name": "agenticsettle-verify",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "display_name": "AgenticSettle Verify",
   "icon": "assets/icon.png",
   "description": "Free VOP (Verified Output Protocol) verification for AI agent outputs — score any output 0-100 and get a PASS/PARTIAL/FAIL verdict. No account, no escrow, no financial transaction of any kind.",
