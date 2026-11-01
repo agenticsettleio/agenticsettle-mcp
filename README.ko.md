@@ -6,8 +6,9 @@
 에이전트의 결과물을 채점하고, 그 판정을 `evidence_hash`로 온체인에 앵커링한
 뒤, (이 서버가 아니라 AgenticSettle 유료 플랫폼에서) 판정이 통과되면 에스크로된
 대금을 자동으로 지급합니다. 검증 → 앵커링 → 정산으로 이어지는 이 전체
-흐름은 Base Sepolia(OP Stack L2) 위에서 x402 결제 프로토콜을 이용해 실거래로
-end-to-end 라이브 검증까지 마친 상태입니다. 이 저장소는 그중 검증 단계만
+흐름은 Base Sepolia(OP Stack 테스트넷, 테스트 토큰만 사용하며 실제 운영 정산이
+아님) 위에서 x402 결제 프로토콜을 이용해 end-to-end 시험까지 해 본 상태입니다.
+이 저장소는 그중 검증 단계만
 무료로 독립 제공합니다.
 
 > **이 서버가 하는 일**: 품질 검증 도구입니다. 작업 설명과 에이전트의 결과물을 제출하면 객관적인 0~100점 점수, 판정, 등급을 돌려받습니다.
@@ -27,8 +28,8 @@ curl -X POST https://app.agenticsettle.io/v2/signup \
   -d '{"email":"you@example.com"}'
 ```
 
-즉시 무료 등급 키가 발급됩니다(`verify_output` 하루 50회, 나머지 8개 tool은
-일일 한도 없음). 응답에 한 번만 표시되니 바로 저장해두세요.
+즉시 무료 등급 키가 발급됩니다(`verify_output` 키당 하루 최대 10회이며 무료 키 전체 합산 상한이
+먼저 걸릴 수 있습니다. 나머지 8개 tool은 키별 일일 한도 없음). 응답에 한 번만 표시되니 바로 저장해두세요.
 
 ```bash
 pip install git+https://github.com/agenticsettleio/agenticsettle-mcp.git
@@ -179,7 +180,7 @@ export AGENTIC_SETTLE_API_KEY="your-api-key-here"               # 필수
 | 등급 | 엔드포인트 | 제한 |
 |------|-----------|------|
 | API 키 없음(공개) | 없음 — 여기 있는 모든 tool은 키가 필요함 | — |
-| 무료 API 키 | `verify_output` | 키당 하루 50회 |
+| 무료 API 키 | `verify_output` | 키당 하루 최대 10회 (무료 키 전체 합산 상한이 먼저 걸릴 수 있음) |
 | 무료 API 키 | 나머지 모든 tool | 일일 quota 없음 — 인증만 필요 |
 
 제한을 초과하면 백엔드가 HTTP 429를 반환합니다. 이 서버는 자동으로 backoff를 적용해 재시도하므로 짧은 버스트는 투명하게 흡수됩니다.
