@@ -100,6 +100,8 @@ result = await verify_output(
 
 Runnable examples for LangGraph, CrewAI and the hosted MCP endpoint are in [examples/](examples/).
 
+A small agent-agnostic demo that releases work only when its visible tests pass and this verification agrees (the settlement receipt is simulated, no money moves) is in [agenticsettle-test-gated-release](https://github.com/agenticsettleio/agenticsettle-test-gated-release).
+
 ---
 
 ## Getting reliable auto-invocation
