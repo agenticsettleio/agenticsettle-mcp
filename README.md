@@ -98,6 +98,8 @@ result = await verify_output(
 # {"report_id": "VER-...", "verdict": "PASS", "score": 87, "tier": "Standard", ...}
 ```
 
+Runnable examples for LangGraph, CrewAI and the hosted MCP endpoint are in [examples/](examples/).
+
 ---
 
 ## Getting reliable auto-invocation
