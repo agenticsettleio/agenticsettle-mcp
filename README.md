@@ -20,7 +20,7 @@ verification step, free and standalone.
 
 **Requirements:** Python 3.10+, an AgenticSettle API key (free, self-service, no credit card).
 
-Get a key instantly — no waiting, no email round-trip:
+Get a key instantly — no waiting, no email verification step (an email address is still required):
 
 ```bash
 curl -X POST https://app.agenticsettle.io/v2/signup \
@@ -73,7 +73,9 @@ python -m agenticsettle_verify_mcp
 
 ## Tools
 
-All 9 tools are free — no account setup, no escrow, no payment of any kind.
+All 9 tools are free — no paid account, no escrow, no payment of any kind (a free API key is required).
+
+The local server exposes all 9 tools. The hosted endpoint (`https://app.agenticsettle.io/mcp`) exposes 6 of them: `verify_output`, `check_verdict`, `get_insights`, `list_verifications`, `list_criteria_templates`, `submit_feedback`. `submit_appeal`, `check_appeal` and `get_manager_alerts` are local-server only.
 
 | Tool | What it does |
 |------|---------------|
@@ -170,7 +172,7 @@ export AGENTIC_SETTLE_API_KEY="your-api-key-here"               # required
 |----------|---------|---------|
 | `AGENTIC_SETTLE_BASE_URL` | `https://app.agenticsettle.io` | Backend URL |
 | `AGENTIC_SETTLE_API_KEY` | *(required)* | `x-api-key` sent with every request |
-| `AGENTIC_SETTLE_TIMEOUT` | `90.0` | Per-HTTP-request timeout in seconds (raised from 30.0 — grounded verification can take up to ~53s) |
+| `AGENTIC_SETTLE_TIMEOUT` | `90.0` | Per-HTTP-request timeout in seconds (grounded verification can take up to ~53s) |
 | `AGENTIC_SETTLE_RETRY_MAX` | `3` | Max attempts on 429/502/503/504 or network errors |
 | `AGENTIC_SETTLE_RETRY_BACKOFF` | `5.0,15.0` | Comma-separated backoff seconds between retries |
 | `AGENTIC_SETTLE_FEEDBACK_URL` | *(unset)* | If set, `submit_feedback` posts here first (e.g. a Slack/Notion webhook) before falling back to the backend |
@@ -237,7 +239,7 @@ A: No. This server has no capability to move money, tokens, or any financial ass
 A: No — every tool in this server is free. AgenticSettle's separate paid tier (escrow-gated settlement) is not exposed here at all.
 
 **Q: Which AI agents are supported?**
-A: Any MCP-compatible agent — Claude, GPT-4o, Gemini, or any custom agent. VOP is model-neutral; it evaluates the output, not the model that produced it.
+A: Any MCP-compatible client can connect. We have tested Claude Code and Claude Desktop; other clients should work but have not been tested by us. VOP is model-neutral; it evaluates the output, not the model that produced it.
 
 **Q: What happens to the content I submit?**
 A: See [PRIVACY.md](PRIVACY.md) — briefly, it's used only to compute your verification score and stored so you can retrieve it later.
