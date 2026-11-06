@@ -3,13 +3,14 @@
 **Free VOP (Verified Output Protocol) verification for AI agent outputs** — lets Claude and any MCP-compatible AI agent objectively score task outputs 0–100 and get a PASS/PARTIAL/FAIL verdict.
 
 This server exposes the free, verification-only slice of a larger settlement
-protocol: VOP scores an agent's output, anchors the verdict on-chain as an
-`evidence_hash`, and (on AgenticSettle's paid platform, not in this server)
-releases escrowed payment once that verdict passes. That full loop — verify →
-anchor → settle — has been exercised end-to-end as a test on Base Sepolia (an OP
-Stack testnet, test tokens only, not production settlement) using the x402
-payment protocol. This repository is only the
-verification step, free and standalone.
+protocol. VOP scores an agent's output; in the full protocol the verdict is
+then anchored on-chain as an `evidence_hash`, and (on AgenticSettle's paid
+platform, not in this server) escrowed payment is released once that verdict
+passes. That full loop — verify → anchor → settle — has been exercised
+end-to-end as a test on Base Sepolia (an OP Stack testnet, test tokens only,
+not production settlement) using the x402 payment protocol. This repository is
+only the verification step, free and standalone: it sends no blockchain
+transactions and moves no money.
 
 > **What this server is:** A quality-verification tool. Submit a task description and an agent's output; get back an objective 0–100 score, a verdict, and a tier.
 > **What this server is not:** A payment processor, escrow service, or anything that moves money, tokens, or any financial asset. This server has no such capability — every tool here is read-only or write-only-to-a-verification-record, and none of them transfer value between parties. (AgenticSettle's full platform does support quality-gated escrow settlement for paying customers, but those tools are intentionally not part of this MCP server — see [Why this is a separate, smaller server](#why-this-is-a-separate-smaller-server).)
