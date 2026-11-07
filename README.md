@@ -8,7 +8,10 @@ then anchored on-chain as an `evidence_hash`, and (on AgenticSettle's paid
 platform, not in this server) escrowed payment is released once that verdict
 passes. That full loop — verify → anchor → settle — has been exercised
 end-to-end as a test on Base Sepolia (an OP Stack testnet, test tokens only,
-not production settlement) using the x402 payment protocol. This repository is
+not production settlement) using the x402 payment protocol. The hosted
+verification service computes an `evidence_hash` for each verdict but does not
+currently write it on-chain; on-chain anchoring has only been exercised on a
+testnet. This repository is
 only the verification step, free and standalone: it sends no blockchain
 transactions and moves no money.
 
