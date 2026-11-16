@@ -236,7 +236,7 @@ A: No — every tool in this server is free. AgenticSettle's separate paid tier 
 A: Any MCP-compatible agent — Claude, GPT-4o, Gemini, or any custom agent. VOP is model-neutral; it evaluates the output, not the model that produced it.
 
 **Q: What happens to the content I submit?**
-A: See [PRIVACY.md](PRIVACY.md) — briefly, it's used only to compute your verification score and stored so you can retrieve it later.
+A: See [PRIVACY.md](PRIVACY.md) — briefly, an external AI service (Anthropic) uses it to compute your verification score. The record we keep for retrieval stores the score, verdict, hashes, and short AI-extracted excerpts, not your full text.
 
 ---
 
