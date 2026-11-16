@@ -1,6 +1,6 @@
 # Privacy Policy — AgenticSettle Verify MCP Server
 
-**Last updated:** 2026-11-07
+**Last updated:** 2026-11-16
 
 This policy covers the `agenticsettle-verify-mcp` server specifically (the
 free-tier VOP verification tools). It does not cover the broader
@@ -57,6 +57,11 @@ agent) pass to a tool.
 - Retention periods for each kind of data are listed in Section 6 of the full
   privacy policy: https://agenticsettle.io/privacy.html. You can also request
   deletion at any time (see below).
+- The short claim, evidence, and summary text stored in a verification
+  record is deleted 180 days after the record is created, for all
+  customers. The score, tier, verdict, per-claim verdicts, cryptographic
+  hashes, and the titles and URLs of public web sources are kept so the
+  stored score can still be checked.
 - API keys are credentials, not data records — they are never persisted
   in plaintext logs.
 
